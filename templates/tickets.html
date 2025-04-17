@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}Tickets - On-Call Ticket Monitor{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Tickets</h2>
+            <a href="{{ url_for('refresh_tickets') }}" class="btn btn-primary">Refresh Tickets</a>
+        </div>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                {% if tickets %}
+                <div class="table-responsive">
+                    <table class="table table-striped" id="tickets-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Client</th>
+                                <th>User</th>
+                                <th>Title</th>
+                                <th>Created</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>After Hours</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ticket in tickets %}
+                            <tr>
+                                <td>{{ ticket.ticket_id }}</td>
+                                <td>{{ ticket.client }}</td>
+                                <td>{{ ticket.user }}</td>
+                                <td>{{ ticket.title }}</td>
+                                <td>{{ format_datetime(ticket.created_at) }}</td>
+                                <td>
+                                    <span class="badge {% if ticket.priority == 'High' %}bg-danger{% elif ticket.priority == 'Medium' %}bg-warning{% else %}bg-info{% endif %}">
+                                        {{ ticket.priority }}
+                                    </span>
+                                </td>
+                                <td>{{ ticket.status }}</td>
+                                <td>
+                                    {% if ticket.notified %}
+                                    <span class="badge bg-success">Notified</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">No</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#desc-{{ ticket.id }}">
+                                        View
+                                    </button>
+                                    <div class="collapse mt-2" id="desc-{{ ticket.id }}">
+                                        <div class="card card-body">
+                                            {{ ticket.description or 'No description available.' }}
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">No tickets found. Click "Refresh Tickets" to fetch the latest tickets from Atera.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add sorting functionality to the table
+        document.querySelectorAll('#tickets-table th').forEach(headerCell => {
+            headerCell.addEventListener('click', () => {
+                const tableElement = headerCell.parentElement.parentElement.parentElement;
+                const headerIndex = Array.prototype.indexOf.call(headerCell.parentElement.children, headerCell);
+                const currentIsAscending = headerCell.classList.contains('th-sort-asc');
+
+                sortTableByColumn(tableElement, headerIndex, !currentIsAscending);
+            });
+        });
+    });
+
+    function sortTableByColumn(table, column, asc = true) {
+        const dirModifier = asc ? 1 : -1;
+        const tBody = table.tBodies[0];
+        const rows = Array.from(tBody.querySelectorAll('tr'));
+
+        // Sort each row
+        const sortedRows = rows.sort((a, b) => {
+            const aColText = a.querySelector(`td:nth-child(${column + 1})`).textContent.trim();
+            const bColText = b.querySelector(`td:nth-child(${column + 1})`).textContent.trim();
+
+            return aColText > bColText ? (1 * dirModifier) : (-1 * dirModifier);
+        });
+
+        // Remove all existing TRs from the table
+        while (tBody.firstChild) {
+            tBody.removeChild(tBody.firstChild);
+        }
+
+        // Re-add the newly sorted rows
+        tBody.append(...sortedRows);
+
+        // Remember how the column is currently sorted
+        table.querySelectorAll('th').forEach(th => th.classList.remove('th-sort-asc', 'th-sort-desc'));
+        table.querySelector(`th:nth-child(${column + 1})`).classList.toggle('th-sort-asc', asc);
+        table.querySelector(`th:nth-child(${column + 1})`).classList.toggle('th-sort-desc', !asc);
+    }
+</script>
+{% endblock %}

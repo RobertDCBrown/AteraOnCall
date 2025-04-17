@@ -1,0 +1,90 @@
+/* Main styles for On-Call Ticket Monitor */
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.footer {
+    margin-top: auto;
+}
+
+/* Table sorting styles */
+.th-sort-asc::after {
+    content: " ▲";
+}
+
+.th-sort-desc::after {
+    content: " ▼";
+}
+
+.th-sort-asc, .th-sort-desc {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* Dashboard styles */
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    font-weight: 500;
+}
+
+/* Ticket priority colors */
+.priority-high {
+    color: #dc3545;
+}
+
+.priority-medium {
+    color: #ffc107;
+}
+
+.priority-low {
+    color: #0dcaf0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .table-responsive {
+        overflow-x: auto;
+    }
+}
+
+/* Custom button styles */
+.btn-refresh {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+.btn-refresh:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+    color: white;
+}
+
+/* Status indicator */
+.status-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.status-active {
+    background-color: #28a745;
+}
+
+.status-inactive {
+    background-color: #dc3545;
+}
+
+/* Ticket description collapse */
+.collapse-description {
+    max-height: 150px;
+    overflow-y: auto;
+}

@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - On-Call Ticket Monitor{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Dashboard</h2>
+        <hr>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4>Current On-Call Technicians</h4>
+            </div>
+            <div class="card-body">
+                {% if current_on_call_technicians %}
+                    {% for technician in current_on_call_technicians %}
+                    <div class="mb-3 {% if not loop.last %}border-bottom pb-3{% endif %}">
+                        <h5>{{ technician.name }}</h5>
+                        <p><strong>Phone:</strong> {{ technician.phone }}</p>
+                        <p><strong>Email:</strong> {{ technician.email }}</p>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="alert alert-warning">
+                    No technicians are currently on call. <a href="{{ url_for('add_oncall') }}">Set up an on-call schedule</a>.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4>System Status</h4>
+            </div>
+            <div class="card-body">
+                <p><strong>Current Time:</strong> <span id="current-time"></span></p>
+                <p><strong>Business Hours Status:</strong> <span id="business-hours-status" class="badge"></span></p>
+                <p><strong>Last Ticket Check:</strong> <span id="last-check-time">{% if last_check_time %}{{ last_check_time }}{% else %}N/A{% endif %}</span></p>
+                <button id="refresh-tickets" class="btn btn-primary">Refresh Tickets Now</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Recent Tickets</h4>
+                <a href="{{ url_for('tickets') }}" class="btn btn-light btn-sm">View All</a>
+            </div>
+            <div class="card-body">
+                {% if tickets %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Created</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>After Hours</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ticket in tickets %}
+                            <tr>
+                                <td>{{ ticket.ticket_id }}</td>
+                                <td>{{ ticket.title }}</td>
+                                <td>{{ format_datetime(ticket.created_at) }}</td>
+                                <td>
+                                    <span class="badge {% if ticket.priority == 'High' %}bg-danger{% elif ticket.priority == 'Medium' %}bg-warning{% else %}bg-info{% endif %}">
+                                        {{ ticket.priority }}
+                                    </span>
+                                </td>
+                                <td>{{ ticket.status }}</td>
+                                <td>
+                                    {% if ticket.notified %}
+                                    <span class="badge bg-success">Notified</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">No</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">No recent tickets found.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleString();
+            
+            // Fetch the actual business hours status from the server
+            fetch('{{ url_for("business_hours_status") }}')
+                .then(response => response.json())
+                .then(data => {
+                    const statusElement = document.getElementById('business-hours-status');
+                    if (data.within_business_hours) {
+                        statusElement.textContent = 'Within Business Hours';
+                        statusElement.classList.add('bg-success');
+                        statusElement.classList.remove('bg-danger');
+                    } else {
+                        statusElement.textContent = 'After Hours';
+                        statusElement.classList.add('bg-danger');
+                        statusElement.classList.remove('bg-success');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching business hours status:', error);
+                });
+        }
+        
+        updateTime();
+        setInterval(updateTime, 60000); // Update every minute
+        
+        // Refresh tickets button
+        document.getElementById('refresh-tickets').addEventListener('click', function() {
+            this.disabled = true;
+            this.textContent = 'Refreshing...';
+            
+            fetch('{{ url_for("dashboard_refresh_tickets") }}')
+                .then(response => {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                    } else {
+                        window.location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error refreshing tickets:', error);
+                    this.disabled = false;
+                    this.textContent = 'Refresh Tickets Now';
+                });
+                
+            document.getElementById('last-check-time').textContent = new Date().toLocaleString();
+        });
+    });
+</script>
+{% endblock %}

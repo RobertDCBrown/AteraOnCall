@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit On-Call Schedule - On-Call Ticket Monitor{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Edit On-Call Schedule</h2>
+        <hr>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    <div class="mb-3">
+                        <label for="technician_id" class="form-label">Technician</label>
+                        <select class="form-select" id="technician_id" name="technician_id" required>
+                            {% for tech in technicians %}
+                            <option value="{{ tech.id }}" {% if tech.id == schedule.technician_id %}selected{% endif %}>{{ tech.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="start_date" class="form-label">Start Date/Time</label>
+                        <input type="datetime-local" class="form-control" id="start_date" name="start_date" value="{{ schedule.start_date.strftime('%Y-%m-%dT%H:%M') }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="end_date" class="form-label">End Date/Time</label>
+                        <input type="datetime-local" class="form-control" id="end_date" name="end_date" value="{{ schedule.end_date.strftime('%Y-%m-%dT%H:%M') }}" required>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('oncall') }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Update Schedule</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Validate that end date is after start date
+        document.querySelector('form').addEventListener('submit', function(event) {
+            const startDate = new Date(document.getElementById('start_date').value);
+            const endDate = new Date(document.getElementById('end_date').value);
+            
+            if (endDate <= startDate) {
+                event.preventDefault();
+                alert('End date must be after start date');
+            }
+        });
+    });
+</script>
+{% endblock %}

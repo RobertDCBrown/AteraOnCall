@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}Settings - On-Call Ticket Monitor{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Application Settings</h2>
+        <hr>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4>Ticket Refresh Settings</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <h5 class="mb-3">General Settings</h5>
+                    <div class="mb-3">
+                        <label for="refresh_interval" class="form-label">Automatic Ticket Refresh Interval (minutes)</label>
+                        <input type="number" class="form-control" id="refresh_interval" name="refresh_interval" 
+                               value="{{ refresh_interval }}" min="1" max="60" required>
+                        <small class="text-muted">How often the system should automatically check for new tickets from Atera (in minutes)</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="timezone" class="form-label">Timezone</label>
+                        <select class="form-select" id="timezone" name="timezone" required>
+                            {% for tz in timezones %}
+                            <option value="{{ tz }}" {% if tz == current_timezone %}selected{% endif %}>{{ tz }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">The timezone to use for displaying dates and times</small>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h5 class="mb-3">API Configuration</h5>
+                    <div class="mb-3">
+                        <label for="atera_api_key" class="form-label">Atera API Key</label>
+                        <input type="password" class="form-control" id="atera_api_key" name="atera_api_key" 
+                               value="{{ atera_api_key }}">
+                        <small class="text-muted">API key for accessing the Atera ticketing system</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="twilio_account_sid" class="form-label">Twilio Account SID</label>
+                        <input type="password" class="form-control" id="twilio_account_sid" name="twilio_account_sid" 
+                               value="{{ twilio_account_sid }}">
+                        <small class="text-muted">Twilio Account SID for sending SMS notifications</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="twilio_auth_token" class="form-label">Twilio Auth Token</label>
+                        <input type="password" class="form-control" id="twilio_auth_token" name="twilio_auth_token" 
+                               value="{{ twilio_auth_token }}">
+                        <small class="text-muted">Twilio Auth Token for authentication</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="twilio_phone_number" class="form-label">Twilio Phone Number</label>
+                        <input type="text" class="form-control" id="twilio_phone_number" name="twilio_phone_number" 
+                               value="{{ twilio_phone_number }}">
+                        <small class="text-muted">Twilio phone number to send SMS notifications from (e.g., +15551234567)</small>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Note: Changes to API keys take effect immediately. Changes to the refresh interval will take effect after restarting the application. Timezone changes will take effect immediately.
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Save Settings</button>
+                    </div>
+                </form>
+                <hr>
+                <div class="d-grid gap-2">
+                    <button id="restartButton" class="btn btn-warning">
+                        <i class="fas fa-sync-alt"></i> Restart Service
+                    </button>
+                    <small class="text-muted text-center">Use this button to restart the service after making configuration changes.</small>
+                </div>
+                <div id="restartStatus" class="alert mt-3" style="display: none;"></div>
+                
+                <script>
+                    document.getElementById('restartButton').addEventListener('click', function() {
+                        if (confirm('Are you sure you want to restart the service? The application will be temporarily unavailable during restart.')) {
+                            // Show loading status
+                            const statusDiv = document.getElementById('restartStatus');
+                            statusDiv.className = 'alert alert-info mt-3';
+                            statusDiv.style.display = 'block';
+                            statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Restarting service... Please wait.';
+                            
+                            // Disable the button during restart
+                            this.disabled = true;
+                            
+                            // Call the restart endpoint
+                            fetch('/restart-service', {
+                                method: 'GET',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    statusDiv.className = 'alert alert-success mt-3';
+                                    statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> ' + data.message;
+                                    
+                                    // Set a timer to refresh the page after a delay
+                                    setTimeout(function() {
+                                        statusDiv.innerHTML += '<br><i class="fas fa-spinner fa-spin"></i> Reconnecting...';
+                                        // Try to reconnect by refreshing the page after a delay
+                                        setTimeout(function() {
+                                            window.location.reload();
+                                        }, 5000); // Wait 5 seconds before refreshing
+                                    }, 3000); // Wait 3 seconds before showing reconnecting message
+                                } else {
+                                    statusDiv.className = 'alert alert-danger mt-3';
+                                    statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error: ' + data.message;
+                                    this.disabled = false;
+                                }
+                            })
+                            .catch(error => {
+                                statusDiv.className = 'alert alert-danger mt-3';
+                                statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error: ' + error.message;
+                                this.disabled = false;
+                            });
+                        }
+                    });
+                </script>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
