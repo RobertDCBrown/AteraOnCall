@@ -1,0 +1,20 @@
+# Core Framework
+Flask==2.2.5
+Werkzeug==2.2.3
+Flask-WTF==1.1.1
+Flask-SQLAlchemy==3.0.5
+Flask-Login==0.6.2
+
+# API Integration
+requests==2.31.0
+twilio==8.5.0
+
+# Configuration and Environment
+python-dotenv==1.0.0
+pytz==2023.3
+
+# Scheduling and Background Tasks
+APScheduler==3.10.1
+
+# Production Server
+waitress==2.1.2
