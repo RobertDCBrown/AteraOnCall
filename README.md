@@ -178,19 +178,6 @@ Create schedules for technicians to be on-call. The application supports:
 
 The application automatically determines who is currently on-call based on these schedules and displays the current on-call technicians on the dashboard.
 
-## Service Management
-
-### Web-Based Restart
-
-The application includes a convenient restart feature accessible from the web interface:
-
-- **Restart Button**: Located on the Settings page for easy access
-- **Confirmation Dialog**: Prevents accidental restarts
-- **Status Updates**: Shows real-time status during the restart process
-- **Automatic Reconnection**: The page automatically refreshes after restart
-
-This feature allows you to restart the service after making configuration changes without needing to access the server directly.
-
 ## Background Jobs
 
 The application uses APScheduler to run background jobs:
