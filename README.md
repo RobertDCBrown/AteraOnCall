@@ -10,8 +10,6 @@ A Flask web application for monitoring tickets from Atera and sending SMS notifi
 - **Business Hours Configuration**: Configure business hours for each day of the week
 - **Holiday Calendar**: Manage holidays with automatic notification handling
 - **Web-Based Configuration**: Manage all settings through a user-friendly web interface
-- **Timezone Support**: Display all times in your preferred timezone
-- **Service Management**: Restart the service directly from the web interface
 - **Comprehensive Logging**: Detailed logging for troubleshooting and monitoring
 
 ## Setup Instructions
@@ -59,7 +57,7 @@ A Flask web application for monitoring tickets from Atera and sending SMS notifi
 
 2. Open a web browser and navigate to:
    ```
-   http://localhost:5000
+   http://localhost:5000/setup
    ```
 
 3. On first run, you'll be prompted to create an admin account
